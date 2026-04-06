@@ -3,7 +3,17 @@ import { prisma } from "@/prisma"
 
 class QuestionsController {
   async index(request: Request, response: Response) {
-    const questions = await prisma.question.findMany()
+    const questions = await prisma.question.findMany({
+      where: {
+        title: { 
+          contains: request.query.title?.toString().trim(),
+          mode: "insensitive"
+        },
+      },
+      orderBy: {
+        title: "asc"
+      }
+    })
 
     return response.json(questions)
   }
@@ -16,10 +26,27 @@ class QuestionsController {
   }
 
   async update(request: Request, response: Response) {
+    const { title, content } = request.body
+    const { id } = request.params
+
+    await prisma.question.update({ 
+      where: {
+        id
+      }, 
+      data: {
+        title,
+        content
+      }
+    })
+
     return response.json()
   }
 
   async remove(request: Request, response: Response) {
+    const { id } = request.params
+
+    await prisma.question.delete({ where: { id } })
+    
     return response.json()
   }
 }
